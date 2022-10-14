@@ -1,6 +1,6 @@
 #-------------------------------------------------------------------------------
 # A simple binomial estimation example
-# Cahill oct 2022
+# Cahill 14 Oct 2022
 #-------------------------------------------------------------------------------
 # load packages
 library(tidyverse)
@@ -19,8 +19,8 @@ library(cowplot)
 
 # set up the true values/simulation control parameters
 set.seed(1) # keep "random" data the same
-n_site_visit <- 50
-theta_true <- 0.09
+n_site_visit <- 100
+theta_true <- 0.19
 
 # generate the fake data
 y <- rbinom(n_site_visit, 1, theta_true)
@@ -31,14 +31,28 @@ sim_data %>%
   ggplot(aes(x = survey, y = y)) +
   geom_point() +
   geom_line() +
-  ylab("critter observed?") +
+  ylab("Jaguar worm observed?") +
+  xlab("Site visit") +
+  ggtitle("0 = not detected, 1 = worm seen") +
   theme_qfc()
 
-e_theta <- sum(y) / n_site_visit
-message(paste0("Empirical estimate of theta = ", e_theta))
+seen <- 0:50
+df <- data.frame(x = seen, prob = dbinom(seen, 100, prob = theta_true))
+df %>%
+  ggplot(aes(x = x, y = prob)) +
+  geom_line() +
+  xlab("True distribution of Jaguar Worm observations") +
+  ylab("Pr(x detections | 100 site visits)") +
+  ggtitle(expression(If ~ you ~ visit ~ site ~ `100` ~ times ~ and ~ theta[true] ~ `=` ~ `0.19`)) +
+  theme_qfc()
+
+theta_e <- sum(y) / n_site_visit
+message(paste0("Empirical estimate of theta = ", theta_e))
 
 #-------------------------------------------------------------------------------
 message("CHRIS TALK ABOUT DIRECTORY, THEN GO TO .stan !!!!!")
+
+# ignore the next few lines for now:
 
 # detect number of CPUs on current host
 options(mc.cores = parallel::detectCores())
@@ -47,7 +61,8 @@ options(mc.cores = parallel::detectCores())
 rstan::rstan_options(auto_write = TRUE)
 
 # compile the stan model
-m <- rstan::stan_model("src/binomial.stan", verbose = T)
+path <- "ch2/src/binomial.stan"
+m <- rstan::stan_model(path, verbose = T)
 
 # set up the data and the initial values
 stan_data <-
@@ -68,10 +83,7 @@ fit0 <-
   rstan::sampling(
     m,
     data = stan_data,
-    pars =
-      c(
-        "theta"
-      ),
+    pars = "theta",
     iter = 1e5 # run 10000 simulations
   )
 
@@ -85,24 +97,22 @@ prior <- fit0 %>%
   ggplot(aes(x = theta)) +
   geom_histogram(bins = nbin) +
   theme_qfc() +
-  xlab("Pr(jaguar worm detection |study site visit)") +
+  xlab("Pr(jaguar worm detection | study site visit)") +
   ggtitle(expression(Prior ~ predictive ~ distribtion ~ `for` ~ theta))
 prior
 
 #-------------------------------------------------------------------------------
 # compile the stan model, fit it to data
-m <- rstan::stan_model("src/binomial.stan", verbose = T)
+m <- rstan::stan_model(path, verbose = T)
 
 fit <-
   rstan::sampling(
     m,
     data = stan_data,
-    pars =
-      c(
-        "theta"
-      )
+    pars = "theta"
     # note! this function will run 2000 iterations x 4 chains by default
     # but you can specify it explicitly (and we will do so later)
+    # see ?sampling
   )
 
 posterior <- fit %>%
@@ -112,8 +122,13 @@ posterior <- fit %>%
   theme_qfc() +
   xlab("Pr(jaguar worm detection | study site visit)") +
   ggtitle(expression(Posterior ~ distribtion ~ `for` ~ theta)) +
-  geom_vline(xintercept = theta_true, lwd = 1, linetype = 2) # add true value theta
+  geom_vline(xintercept = theta_true, lwd = 1, linetype = 2) # add true theta
 posterior
+
+posterior + geom_vline(
+  xintercept = theta_e, lwd = 1,
+  linetype = 2, color = "blue"
+) # add true theta
 
 # can visualize *many* ways, e.g.,
 fit %>%
@@ -133,11 +148,13 @@ fit %>%
   theme_qfc()
 
 #-------------------------------------------------------------------------------
+posterior <- posterior + xlim(0, 1) # +
+# geom_vline(xintercept = theta_e, lwd = 1, linetype = 1) # empirical theta
 p1 <- plot_grid(prior, posterior, ncol = 1)
 p1
 
 #-------------------------------------------------------------------------------
-# potential exercises / stuff to think about in your copious amounts of free time:
+# exercises / stuff worth thinking about in your copious amounts of free time:
 
 # Question 1:
 # compiling code takes time, and time is important for model debugging.
@@ -145,17 +162,18 @@ p1
 # prior distributions when your supervisor requests you demonstrate that your results
 # are/are not robust to your prior choice? Hint: if-statements are your friend
 
-
 # Question 2:
 # If you don't like vectorization in the stan code, you can do it by looping instead.
 # Try it, and see if you get the same answers.  There are *lots* of instances /
 # bespoke models where this sort of thing is very helpful
 
 # Question 3:
-# So far we have calculated the prior predictive distribtion based on our prior,
-# and then integrated across the prior and likelihood to generate a posterior
-# distribution for the best estimate of theta. This is different from a so-called
-# posterior predictive distribution for theta, which is the Pr(we see a worm | new site visit).
-# Can you figure out how to adapt this code to calulate the posterior predictive
+# So far we have calculated the prior predictive distribution based on our prior,
+# and then (numerically) integrated across the prior and likelihood to generate a posterior
+# distribution for the best estimate of theta.
+
+# This is different from a so-called posterior predictive distribution for theta,
+# which is the Pr(we see a worm | future site visit).
+# Can you figure out how to adapt this code to calculate the posterior predictive
 # distribution for this problem?
 #-------------------------------------------------------------------------------

@@ -8,6 +8,7 @@ parameters {
 model {                
   theta ~ beta(1, 1);   // beta prior 
   y ~ bernoulli(theta); // vectorized likelihood
-  // NOTE: stan is setting lp = 
+  // NOTE: 
+  // stan is setting lp = 
   // log(prior) + log(likelihood) in the background (misery for old timers)
 }
