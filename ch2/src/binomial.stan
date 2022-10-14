@@ -9,6 +9,6 @@ model {
   theta ~ beta(1, 1);   // beta prior 
   y ~ bernoulli(theta); // vectorized likelihood
   // NOTE: 
-  // stan is setting lp = 
+  // stan is setting log(posterior) = 
   // log(prior) + log(likelihood) in the background (misery for old timers)
 }
