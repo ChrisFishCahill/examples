@@ -53,8 +53,6 @@ message(paste0("Empirical estimate of theta = ", theta_e))
 #-------------------------------------------------------------------------------
 message("CHRIS TALK ABOUT DIRECTORY, THEN GO TO .stan !!!!!")
 
-# ignore the next few lines for now:
-
 # detect number of CPUs on current host
 options(mc.cores = parallel::detectCores())
 
