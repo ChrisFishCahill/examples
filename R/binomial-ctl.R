@@ -1,0 +1,161 @@
+#-------------------------------------------------------------------------------
+# A simple binomial estimation example
+# Cahill oct 2022
+#-------------------------------------------------------------------------------
+# load packages
+library(tidyverse)
+devtools::install_github("ChrisFishCahill/gg-qfc")
+library(ggqfc)
+library(rstan)
+library(tidybayes)
+library(cowplot)
+
+#-------------------------------------------------------------------------------
+# simulation
+# observation ~ bernoulli(theta)
+# where theta is the Pr(observing Kentucky Jaguar Worms  ~~~ @ some study site)
+# 1 = jaguar worm observed, 0 = sadness
+#-------------------------------------------------------------------------------
+
+# set up the true values/simulation control parameters
+set.seed(1) # keep "random" data the same
+n_site_visit <- 50
+theta_true <- 0.09
+
+# generate the fake data
+y <- rbinom(n_site_visit, 1, theta_true)
+sim_data <- data.frame(y = y, survey = 1:n_site_visit)
+
+# plot it for a sanity check
+sim_data %>%
+  ggplot(aes(x = survey, y = y)) +
+  geom_point() +
+  geom_line() +
+  ylab("critter observed?") +
+  theme_qfc()
+
+e_theta <- sum(y) / n_site_visit
+message(paste0("Empirical estimate of theta = ", e_theta))
+
+#-------------------------------------------------------------------------------
+message("CHRIS TALK ABOUT DIRECTORY, THEN GO TO .stan !!!!!")
+
+# detect number of CPUs on current host
+options(mc.cores = parallel::detectCores())
+
+# eliminate redundant compilations
+rstan::rstan_options(auto_write = TRUE)
+
+# compile the stan model
+m <- rstan::stan_model("src/binomial.stan", verbose = T)
+
+# set up the data and the initial values
+stan_data <-
+  list(
+    n_data = nrow(sim_data),
+    y = sim_data$y
+  )
+stan_data
+
+inits <- function() {
+  list(
+    theta = jitter(0.5, amount = 0.1)
+  )
+}
+inits()
+
+fit0 <-
+  rstan::sampling(
+    m,
+    data = stan_data,
+    pars =
+      c(
+        "theta"
+      ),
+    iter = 1e5 # run 10000 simulations
+  )
+
+fit0 %>% # take object fit0
+  spread_draws(theta) %>% # pluck out the estimates of theta
+  head(15) # look at the first 15
+
+nbin <- 25 # controls histogram binning
+prior <- fit0 %>%
+  spread_draws(theta) %>%
+  ggplot(aes(x = theta)) +
+  geom_histogram(bins = nbin) +
+  theme_qfc() +
+  xlab("Pr(jaguar worm detection |study site visit)") +
+  ggtitle(expression(Prior ~ predictive ~ distribtion ~ `for` ~ theta))
+prior
+
+#-------------------------------------------------------------------------------
+# compile the stan model, fit it to data
+m <- rstan::stan_model("src/binomial.stan", verbose = T)
+
+fit <-
+  rstan::sampling(
+    m,
+    data = stan_data,
+    pars =
+      c(
+        "theta"
+      )
+    # note! this function will run 2000 iterations x 4 chains by default
+    # but you can specify it explicitly (and we will do so later)
+  )
+
+posterior <- fit %>%
+  spread_draws(theta) %>%
+  ggplot(aes(x = theta)) +
+  geom_histogram(bins = nbin) +
+  theme_qfc() +
+  xlab("Pr(jaguar worm detection | study site visit)") +
+  ggtitle(expression(Posterior ~ distribtion ~ `for` ~ theta)) +
+  geom_vline(xintercept = theta_true, lwd = 1, linetype = 2) # add true value theta
+posterior
+
+# can visualize *many* ways, e.g.,
+fit %>%
+  spread_draws(theta) %>%
+  ggplot(aes(y = theta, x = "")) +
+  geom_violin() +
+  ylab("vlaue") +
+  xlab(expression(theta)) +
+  theme_qfc()
+
+fit %>%
+  spread_draws(theta) %>%
+  ggplot(aes(y = theta, x = "")) +
+  geom_boxplot() +
+  ylab("vlaue") +
+  xlab(expression(theta)) +
+  theme_qfc()
+
+#-------------------------------------------------------------------------------
+p1 <- plot_grid(prior, posterior, ncol = 1)
+p1
+
+#-------------------------------------------------------------------------------
+# potential exercises / stuff to think about in your copious amounts of free time:
+
+# Question 1:
+# compiling code takes time, and time is important for model debugging.
+# can you figure out a clever way to quickly change prior families / jump between
+# prior distributions when your supervisor requests you demonstrate that your results
+# are/are not robust to your prior choice? Hint: if-statements are your friend
+
+
+# Question 2:
+# If you don't like vectorization in the stan code, you can do it by looping instead.
+# Try it, and see if you get the same answers.  There are *lots* of instances /
+# bespoke models where this sort of thing is very helpful
+
+# Question 3:
+# So far we have calculated the prior predictive distribtion based on our prior,
+# and then integrated across the prior and likelihood to generate a posterior
+# distribution for the best estimate of theta. This is different from a so-called
+# posterior predictive distribution for theta, which is the Pr(we see a worm | new site visit).
+# Can you figure out how to adapt this code to calulate the posterior predictive
+# distribution for this problem?
+#-------------------------------------------------------------------------------
