@@ -176,5 +176,11 @@ p1
 # This is different from a so-called posterior predictive distribution for theta,
 # which is the Pr(we see a worm | future site visit).
 # Can you figure out how to adapt this code to calculate the posterior predictive
-# distribution for this problem?
+# distribution for this problem? 
+
+# Question 4: 
+# Regardless of whether you figured out how to implement question 3, how might you 
+# be able to use this information to inform managers/biologists/sane humans who 
+# do not live the Matrix on how best to monitor or survey their beloved Kentucky
+# jaguar worms? 
 #-------------------------------------------------------------------------------
