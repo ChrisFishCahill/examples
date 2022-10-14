@@ -1,8 +1,6 @@
 data {
   int<lower=0> n_data;                     // bounding to be > 0 
   array[n_data] int<lower=0, upper=1> y;   // y is an integer, either 0 or 1
-  real beta1; 
-  real beta2;  
 }
 parameters {
   real<lower=0, upper=1> theta;            // stuff we are estimating 
