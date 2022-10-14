@@ -51,8 +51,6 @@ theta_e <- sum(y) / n_site_visit
 message(paste0("Empirical estimate of theta = ", theta_e))
 
 #-------------------------------------------------------------------------------
-message("CHRIS TALK ABOUT DIRECTORY, THEN GO TO .stan !!!!!")
-
 # detect number of CPUs on current host
 options(mc.cores = parallel::detectCores())
 
