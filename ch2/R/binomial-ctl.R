@@ -43,7 +43,8 @@ df %>%
   geom_line() +
   xlab("True distribution of Jaguar Worm observations") +
   ylab("Pr(x detections | 100 site visits)") +
-  ggtitle(expression(If ~ you ~ visit ~ site ~ `100` ~ times ~ and ~ theta[true] ~ `=` ~ `0.19`)) +
+  ggtitle(expression(If ~ you ~ visit ~ site ~ `100` ~ times ~ 
+                       and ~ theta[true] ~ `=` ~ `0.19`)) +
   theme_qfc()
 
 theta_e <- sum(y) / n_site_visit
