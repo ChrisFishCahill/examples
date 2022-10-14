@@ -177,6 +177,6 @@ p1
 # Question 4: 
 # Regardless of whether you figured out how to implement question 3, how might you 
 # be able to use this information to inform managers/biologists/sane humans who 
-# do not live the Matrix on how best to monitor or survey their beloved Kentucky
+# do not live in the Matrix on how best to monitor or survey their beloved Kentucky
 # jaguar worms? 
 #-------------------------------------------------------------------------------
