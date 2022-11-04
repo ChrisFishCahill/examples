@@ -14,7 +14,7 @@ library(ggqfc)
 # y_i ~ Poisson(lambda_i) # i is survey count
 # E(y_i) = lambda_i
 # Var(y_i) = lambda_i
-# log(lambda_i) = beta_0 + beta_1*x1, where x1 is km--this is process component
+# log(lambda_i) = beta_0 + beta_1*x1, where x1 is km
 # define some (true) parameters and data for simulation
 
 n_replicates <-  # replicates each location along river
