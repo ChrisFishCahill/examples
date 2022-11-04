@@ -1,13 +1,14 @@
 # cahill 4 November 2022
+# a multi-parameter model demo in Stan 
 
-# packages
+# libraries
 library(dplyr)
 library(ggplot2)
 library(rstan)
 devtools::install_github("ChrisFishCahill/gg-qfc")
 library(ggqfc)
 
-# simulate data for Gorbachev's homing mussles
+# simulate data for Gorbachev's homing mussels
 
 # model form:
 # y_i ~ Poisson(lambda_i) # i is survey count
