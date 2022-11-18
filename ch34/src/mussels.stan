@@ -22,3 +22,11 @@ model {
   // likelihood
   y_i ~ poisson(lambda); 
 }
+generated quantities{
+  vector[n_data] y_ppc;  
+  
+  for(i in 1:n_data){
+    y_ppc[i] = poisson_rng(exp(beta0 + beta1*km[i]));
+  }
+}
+

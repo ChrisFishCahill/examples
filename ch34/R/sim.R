@@ -19,7 +19,7 @@ library(ggqfc)
 # log(lambda_i) = beta_0 + beta_1*x1, where x1 is km
 # define some (true) parameters and data for simulation
 
-n_replicates <- 3 # replicates each location along river
+n_replicates <- 100 # replicates each location along river
 survey_locations <- seq(from = 0, to = 30, by = 5)
 n_surveys <- length(survey_locations) * n_replicates
 
@@ -93,13 +93,15 @@ fit <-
   rstan::sampling(
     m,
     data = stan_data,
-    pars = c("beta0", "beta1"),
+    pars = c("beta0", "beta1", "y_ppc"),
     iter = 100,
-    warmup = 12,
+    warmup = 10,
     chains = 1,
     init = inits
   )
 shinystan::launch_shinystan(fit)
+pairs(fit, pars = c('beta0', 'beta1'))
+
 # plot it
 p1 <- fit %>%
   spread_draws(beta0) %>%
@@ -113,3 +115,10 @@ p2 <- fit %>%
 
 p3 <- plot_grid(p1, p2)
 p3
+
+# 
+fit %>%
+  spread_draws(y_ppc[i]) %>%
+  filter(i == 3) %>%
+  ggplot(aes(x = y_ppc)) +
+  geom_histogram(bins = 20)
