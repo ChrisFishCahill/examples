@@ -8,10 +8,10 @@ parameters{
   real beta1; // slope for km
 }
 transformed parameters {
- vector[n_data] mu; // prediction in normal space
+ vector[n_data] lambda; // prediction in normal space
 
  for(i in 1:n_data){
-   mu[i] = exp(beta0 + beta1*km[i]);
+   lambda[i] = exp(beta0 + beta1*km[i]);
  }
 }
 model {
@@ -20,5 +20,5 @@ model {
   beta1 ~ normal(0, 1); 
   
   // likelihood
-  y_i ~ poisson(mu); 
+  y_i ~ poisson(lambda); 
 }

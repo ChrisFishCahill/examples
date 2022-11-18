@@ -94,12 +94,12 @@ fit <-
     m,
     data = stan_data,
     pars = c("beta0", "beta1"),
-    iter = 2000,
-    warmup = 1000,
+    iter = 100,
+    warmup = 12,
     chains = 1,
     init = inits
     )
-
+shinystan::launch_shinystan(fit)
 # plot it 
 p1 <- fit %>%
   spread_draws(beta0) %>%
