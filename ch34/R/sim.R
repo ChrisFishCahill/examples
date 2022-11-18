@@ -73,17 +73,17 @@ m <-
   )
 
 stan_data <- list(
-  "n_data" = nrow(data), 
-  "y_i" = data$y_i, 
+  "n_data" = nrow(data),
+  "y_i" = data$y_i,
   "km" = data$km
 )
 
 # I always code this as a function:
 inits <- function() {
   list(
-     "beta0" = jitter(1), 
-     "beta1" = jitter(0)
-    )
+    "beta0" = jitter(1),
+    "beta1" = jitter(0)
+  )
 }
 
 inits()
@@ -98,17 +98,17 @@ fit <-
     warmup = 12,
     chains = 1,
     init = inits
-    )
+  )
 shinystan::launch_shinystan(fit)
-# plot it 
+# plot it
 p1 <- fit %>%
   spread_draws(beta0) %>%
-  ggplot(aes(x=beta0)) +
+  ggplot(aes(x = beta0)) +
   geom_histogram(bins = 20)
 
 p2 <- fit %>%
   spread_draws(beta1) %>%
-  ggplot(aes(x=beta1)) +
+  ggplot(aes(x = beta1)) +
   geom_histogram(bins = 20)
 
 p3 <- plot_grid(p1, p2)
